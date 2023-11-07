@@ -1,91 +1,69 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 import seaborn as sns
-import matplotlib.pyplot as plt #Importing the libraries
+import matplotlib.pyplot as plt
+     
 
 df = pd.read_csv("Churn_Modelling.csv")
-df
-
 df.head()
 
-df.tail()
-
 df.shape
-
-df.describe()
-
-df.isnull()
-
+     
 df.isnull().sum()
-
-df.info()
 
 df.dtypes
 
-df.columns
-
-df = df.drop(['RowNumber', 'Surname', 'CustomerId'], axis= 1) #Dropping the unnecessary columns 
-
-df.head()
+df = df.drop(['RowNumber','Surname','CustomerId'], axis = 1)
+     
 
 states = pd.get_dummies(df['Geography'],drop_first = True)
 gender = pd.get_dummies(df['Gender'],drop_first = True)
-df = pd.concat([df,gender,states], axis = 1)
-#added columns
+df = df.drop(['Geography','Gender'], axis = 1)
+df
 
-X = df[['CreditScore','Age','Tenure','Balance','NumOfProducts','HasCrCard','IsActiveMember','EstimatedSalary','Male','Germany','Spain']]
+df = pd.concat([df,gender,states], axis = 1)
+df
+
+x = df.drop('Exited', axis = 1)
 y = df['Exited']
+     
 
 from sklearn.model_selection import train_test_split
-X_train,X_test,y_train,y_test = train_test_split(X,y,test_size = 0.30)
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.30)
+     
+
+x_train
+
+y_train
 
 from sklearn.preprocessing import StandardScaler
 sc = StandardScaler()
+x_train = sc.fit_transform(x_train)
+x_test = sc.fit_transform(x_test)
+     
 
-X_train  = sc.fit_transform(X_train)
-X_test = sc.transform(X_test)
-
-X = df[['CreditScore','Gender','Age','Tenure','Balance','NumOfProducts','HasCrCard','IsActiveMember','EstimatedSalary']]
-
-import keras #Keras is the wrapper on the top of tenserflow
-#Can use Tenserflow as well but won't be able to understand the errors initially. 
-
-from keras.models import Sequential #To create sequential neural network
+import keras
+from keras.models import Sequential
 from keras.layers import Dense #To create hidden layers
 
-classifier = Sequential()
+model = Sequential()
 
-#To add the layers
-#Dense helps to contruct the neurons
-#Input Dimension means we have 11 features 
-# Units is to create the hidden layers
-#Uniform helps to distribute the weight uniformly
-classifier.add(Dense(activation = "relu",input_dim = 11,units = 6,kernel_initializer = "uniform")) 
+model.add(Dense(activation = "relu", input_dim = 11,units = 6, kernel_initializer = "uniform"))
+model.add(Dense(activation = "relu", units = 6, kernel_initializer = "uniform"))   #Adding second hidden layers
+model.add(Dense(activation = "sigmoid", units = 1,kernel_initializer = "uniform"))  #Final neuron will be having siigmoid function
 
-classifier.add(Dense(activation = "relu",units = 6,kernel_initializer = "uniform"))   #Adding second hidden layers
+model.compile(optimizer="adam", loss = 'binary_crossentropy', metrics = ['accuracy']) #To compile the Artificial Neural Network. Ussed Binary crossentropy as we just have only two output
+model.summary() #3 layers created. 6 neurons in 1st,6neurons in 2nd layer and 1 neuron in last
 
-classifier.add(Dense(activation = "sigmoid",units = 1,kernel_initializer = "uniform")) #Final neuron will be having siigmoid function
+model.fit(x_train,y_train,batch_size=11,epochs=50) #Fitting the ANN to training dataset
 
-classifier.compile(optimizer="adam",loss = 'binary_crossentropy',metrics = ['accuracy']) #To compile the Artificial Neural Network. Ussed Binary crossentropy as we just have only two output
 
-classifier.summary() #3 layers created. 6 neurons in 1st,6neurons in 2nd layer and 1 neuron in last
+y_pred = model.predict(x_test)
+y_pred = (y_pred > 0.5)
+     
 
-classifier.fit(X_train,y_train,batch_size=10,epochs=50) #Fitting the ANN to training dataset
+from sklearn import metrics
+     
+metrics.accuracy_score(y_test, y_pred)
 
-y_pred =classifier.predict(X_test)
-y_pred = (y_pred > 0.5) #Predicting the result
-
-from sklearn.metrics import confusion_matrix,accuracy_score,classification_report
-
-cm = confusion_matrix(y_test,y_pred)
-cm
-
-accuracy = accuracy_score(y_test,y_pred)
-accuracy
-
-plt.figure(figsize = (10,7))
-sns.heatmap(cm,annot = True)
-plt.xlabel('Predicted')
-plt.ylabel('Truth')
-
-print(classification_report(y_test,y_pred))
+metrics.confusion_matrix(y_test, y_pred)
