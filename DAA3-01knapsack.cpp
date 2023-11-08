@@ -21,13 +21,28 @@ int knapSack(int index, int capacity, int wt[], int val[], vector<vector<int>> d
 } 
 
 int main(){ 
-	int profit[] = { 60, 100, 120 }; 
-	int weight[] = { 10, 20, 30 }; 
-	int capacity = 50; 
-	int n = sizeof(profit) / sizeof(profit[0]); 
+	int n, capacity;
+
+    cout << "Enter the number of items: ";
+    cin >> n;
+    
+    int profit[n];
+    int weight[n];
+    
+    cout << "Enter the profits and weights for each item:" << endl;
+    for (int i = 0; i < n; i++) {
+        cout << "Item " << i + 1 << " - Profit: ";
+        cin >> profit[i];
+        cout << "Item " << i + 1 << " - Weight: ";
+        cin >> weight[i];
+    }
+
+    cout << "Enter the maximum weight capacity (capacity): ";
+    cin >> capacity; 
 
 	vector<vector<int>> dp(n, vector<int>(capacity+1, -1));
 	
 	cout << knapSack(n-1, capacity, weight, profit, dp); 
 	return 0; 
 } 
+
